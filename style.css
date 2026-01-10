@@ -41,6 +41,7 @@ input, select, textarea{
 
 label, p {
   border: 0px;
+  font-size: 18px;
   color: #ffffff;
 }
 
@@ -98,17 +99,17 @@ button {
   z-index: 1000;
 }
 
-/* BOTÃO REDONDO */
+/*botão redondo*/
 .botao-fixo button {
-  width: 72px;
-  height: 72px;
+  width: 96px;
+  height: 96px;
   border-radius: 50%;
   background: #700000;
-  color: #444444;
-  font-size: 30px;
+  color: #ffffff;
+  font-size: 38px;
   border: none;
   cursor: pointer;
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.35);
 }
 
 /* EFEITO DE TOQUE */
@@ -141,6 +142,11 @@ header h2 {
 header h3 {
   color: #000000;
   font-size: 20px;
+}
+
+header p {
+  color: #000000;
+  font-size: 18px;
 }
 
 /* ----------------------------------------------------------------- rodape */
