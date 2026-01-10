@@ -41,7 +41,7 @@ input, select, textarea{
 
 label, p {
   border: 0px;
-  font-size: 18px;
+  font-size: 25px;
   color: #ffffff;
 }
 
@@ -96,21 +96,22 @@ button {
   position: fixed;
   bottom: 20px;
   right: 20px;
-  z-index: 1000;
+  z-index: 9999;
 }
 
 /*botão redondo*/
 .botao-fixo button {
-  width: 96px;
-  height: 96px;
+  width: 120px;
+  height: 120px;
   border-radius: 50%;
   background: #700000;
   color: #ffffff;
-  font-size: 38px;
+  font-size: 52px;
   border: none;
   cursor: pointer;
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
 }
+
 
 /* EFEITO DE TOQUE */
 .botao-fixo button:active {
