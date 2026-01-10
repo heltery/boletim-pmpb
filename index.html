@@ -29,10 +29,14 @@
         <!--DADOS DA OCORRENCIA-->
         <div class="section">
             <h3>DADOS DA OCORRENCIA 📍</h3>
+                <div class="linha-quantidade">
+                    <p>Data</p>
+                    <input id="data" type="date">
+                    <p>Hora</p>
+                    <input id="hora" type="time"><br>
+                </div>
                 <input id="numeroCICC" placeholder="Nº FICHA CICC"><br>
                 <input id="uop" placeholder="UOp/SUOp"><br>
-                <input id="data" type="date" placeholder="Data da Ocorrencia">
-                <input id="hora" type="time" placeholder="Hora da Ocorrencia"><br>
                 <input id="endereco" placeholder="Endereço">
                 <input id="numeroEndereco" placeholder="Nº"><br>
                 <input id="pontoReferencia" placeholder="Ponto de Referencia"><br>
@@ -118,7 +122,7 @@
         <div class="section">
               <!--RELATO DA OCORRENCIA-->
               <h3>RELATO DA OCORRENCIA ✍️</h3>
-              <textarea id="relato" placeholder="Relato da Ocorrência" required></textarea><br>
+              <textarea id="relato" placeholder="Relato da Ocorrência" required class="textarearelato"></textarea><br>
               <!-------------------------->
         </div>
         
