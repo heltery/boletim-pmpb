@@ -36,13 +36,13 @@ body {
 /* TIPOGRAFIA */
 h3, h4{
   margin: 12px 0 8px;
-  color: #ffffff;
+  color: #000000;
 }
 
 label, p {
   border: 0px;
   font-size: 16px;
-  color: #ffffff;
+  color: #000000;
 }
 /*----------------------------------------------------------------------------------------*/
 
@@ -109,8 +109,8 @@ button {
   font-size: 16px;
   border-radius: 10px;
   border: none;
-  background: #700000;
-  color: white;
+  background: #34649c;
+  color: rgb(0, 0, 0);
   cursor: pointer;
 }
 /*----------------------------------------------------------------------------------------*/
@@ -131,7 +131,7 @@ button {
 .container {
   max-width: 900px;
   margin: auto;
-  background: #130000c4;
+  background: #34649c;
   padding: 16px;
   border-radius: 14px;
   box-shadow: 0 4px 10px rgba(255, 255, 255, 0.952);
@@ -142,8 +142,8 @@ button {
   margin-bottom: 20px;
   padding: 14px;
   border-radius: 12px;
-  background: #444444;
-  border-left: 5px solid #4e4e4e;
+  background: #3cace4;
+  border-left: 5px solid;
 }
 
 .section h3 {
@@ -169,6 +169,13 @@ header {
   text-align: center;
   margin-bottom: 20px;
   color: #ffffff;
+}
+
+.logo-header {
+  max-width: 120px;   /* CONTROLA O TAMANHO */
+  width: 100%;        /*adapta no celular*/
+  height: auto;       /*mantem proporcao*/
+  margin-bottom: 10px;
 }
 
 header h2 {
@@ -292,7 +299,7 @@ header p {
   width: 120px;
   height: 120px;
   border-radius: 50%;
-  background: #700000;
+  background: #34649c;
   color: #ffffff;
   font-size: 52px;
   border: none;
@@ -330,7 +337,7 @@ header p {
 .rodape {
   margin-top: 40px;
   padding: 20px 10px;
-  background: #444444; /* tom semelhante ao da imagem */
+  background: #34649c; /* tom semelhante ao da imagem */
   text-align: center;
 }
 
@@ -356,6 +363,26 @@ header p {
   font-size: 13px;
   color: #ffffff;
   opacity: 0.9;
+}
+
+/*LINKS*/
+.rodape-links {
+  display: flex;
+  justify-content: center;
+  gap: 20px;            /* 🔥 ESPAÇO ENTRE OS LINKS */
+  margin-bottom: 12px;
+  flex-wrap: wrap;      /* não quebra no celular */
+}
+
+.rodape-links .link {
+  color: #ffffff;
+  text-decoration: none;
+  font-size: 30px;
+  font-weight: 500;
+}
+
+.rodape-links .link:hover {
+  text-decoration: underline;
 }
 
 /* --------------------------------------------------------------------------------------------------*/
@@ -390,3 +417,15 @@ header p {
 
 /* --------------------------------------------------------------------------------------------------*/
 
+
+
+
+
+
+/*
+CODIGO CORES HYNGO:
+
+#34649c - AZUL ESCURO
+#3cace4 - AZUL CLARO
+
+*/
