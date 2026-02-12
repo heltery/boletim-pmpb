@@ -71,14 +71,14 @@ function gerarCamposVitima() {
     container2.innerHTML += `
       <h3>Vitima ${i}</h3>
 
-      <input type="text" id="nome${i}" placeholder="Nome Vitima"><br>
-      <input type="date" id="dataNascimento${i}" placeholder="Data de Nascimento"><br>
-      <input type="text" id="genitora${i}" placeholder="Genitora"><br>
-      <input type="text" id="rg${i}" placeholder="RG"><br>
-      <input type="text" id="cpf${i}" placeholder="CPF"><br>
-      <input type="text" id="endereço${i}" placeholder="Endereço"><br>
-      <input type="text" id="profissao${i}" placeholder="Profissão"><br>
-      <input type="text" id="telefone${i}" placeholder="Telefone"><br>
+      <input type="text" id="nome_vitima${i}" placeholder="Nome Vitima"><br>
+      <input type="date" id="dataNascimento_vitima${i}" placeholder="Data de Nascimento"><br>
+      <input type="text" id="genitora_vitima${i}" placeholder="Genitora"><br>
+      <input type="text" id="rg_vitima${i}" placeholder="RG"><br>
+      <input type="text" id="cpf_vitima${i}" placeholder="CPF"><br>
+      <input type="text" id="endereço_vitima${i}" placeholder="Endereço"><br>
+      <input type="text" id="profissao_vitima${i}" placeholder="Profissão"><br>
+      <input type="text" id="telefone_vitima${i}" placeholder="Telefone"><br>
       `;
   }
 }
@@ -93,14 +93,14 @@ function gerarCamposTestemunha() {
     container2.innerHTML += `
       <h3>Testemunha ${i}</h3>
 
-      <input type="text" id="nome${i}" placeholder="Nome Testemunha"><br>
-      <input type="date" id="dataNascimento${i}" placeholder="Data de Nascimento"><br>
-      <input type="text" id="genitora${i}" placeholder="Genitora"><br>
-      <input type="text" id="rg${i}" placeholder="RG"><br>
-      <input type="text" id="cpf${i}" placeholder="CPF"><br>
-      <input type="text" id="endereço${i}" placeholder="Endereço"><br>
-      <input type="text" id="profissao${i}" placeholder="Profissão"><br>
-      <input type="text" id="telefone${i}" placeholder="Telefone"><br>
+      <input type="text" id="nome_testemunha${i}" placeholder="Nome Testemunha"><br>
+      <input type="date" id="dataNascimento_testemunha${i}" placeholder="Data de Nascimento"><br>
+      <input type="text" id="genitora_testemunha${i}" placeholder="Genitora"><br>
+      <input type="text" id="rg_testemunha${i}" placeholder="RG"><br>
+      <input type="text" id="cpf_testemunha${i}" placeholder="CPF"><br>
+      <input type="text" id="endereço_testemunha${i}" placeholder="Endereço"><br>
+      <input type="text" id="profissao_testemunha${i}" placeholder="Profissão"><br>
+      <input type="text" id="telefone_testemunha${i}" placeholder="Telefone"><br>
       `;
   }
 }
@@ -121,7 +121,20 @@ function obterNomesAcusados() {
 }
 
 
+/* NOVA FUNÇÂO PARA DEIXAR TUDO EM CAIXA ALTA NO PDF */
+function v(id) {
+  const el = document.getElementById(id);
+  return el ? (el.value ?? "").trim() : "";
+}
 
+function V(id) { // caixa alta
+  return v(id).toUpperCase();
+}
+
+function textoUpper(texto) {
+  return (texto ?? "").toString().trim().toUpperCase();
+}
+/*-------------------------------------------------------*/
 
 
 
@@ -486,14 +499,14 @@ function blocoTexto(titulo, texto) {
       doc.setFont("Times", "normal");
 
       
-      let vitima = document.getElementById("nome" + i).value;
-      let nascimento = document.getElementById("dataNascimento" + i).value;
-      let genitora = document.getElementById("genitora" + i).value;
-      let rg = document.getElementById("rg" + i).value;
-      let cpf = document.getElementById("cpf" + i).value;
-      let endereco = document.getElementById("endereço" + i).value;
-      let telefone = document.getElementById("telefone" + i).value;
-      let profissao = document.getElementById("Profissao" + i).value;
+      let vitima = document.getElementById("nome_vitima" + i).value;
+      let nascimento = document.getElementById("dataNascimento_vitima" + i).value;
+      let genitora = document.getElementById("genitora_vitima" + i).value;
+      let rg = document.getElementById("rg_vitima" + i).value;
+      let cpf = document.getElementById("cpf_vitima" + i).value;
+      let endereco = document.getElementById("endereço_vitima" + i).value;
+      let telefone = document.getElementById("telefone_vitima" + i).value;
+      let profissao = document.getElementById("profissao_vitima" + i).value;
       
       y+=5;
       doc.text("Nome:", 15, y);
@@ -550,14 +563,14 @@ function blocoTexto(titulo, texto) {
       doc.setFont("Times", "normal");
 
       
-      let testemunha = document.getElementById("nome" + i).value;
-      let nascimento = document.getElementById("dataNascimento" + i).value;
-      let genitora = document.getElementById("genitora" + i).value;
-      let rg = document.getElementById("rg" + i).value;
-      let cpf = document.getElementById("cpf" + i).value;
-      let endereco = document.getElementById("endereço" + i).value;
-      let telefone = document.getElementById("telefone" + i).value;
-      let profissao = document.getElementById("profissao" + i).value;
+      let testemunha = document.getElementById("nome_testemunha" + i).value;
+      let nascimento = document.getElementById("dataNascimento_testemunha" + i).value;
+      let genitora = document.getElementById("genitora_testemunha" + i).value;
+      let rg = document.getElementById("rg_testemunha" + i).value;
+      let cpf = document.getElementById("cpf_testemunha" + i).value;
+      let endereco = document.getElementById("endereço_testemunha" + i).value;
+      let telefone = document.getElementById("telefone_testemunha" + i).value;
+      let profissao = document.getElementById("profissao_testemunha" + i).value;
       
       y+=5;
       doc.text("Nome:", 15, y);
