@@ -139,10 +139,21 @@ function textoUpper(texto) {
 
 
 
+
+
+
+
 // FUNÇÃO PARA GERAR O ARQUIVO PDF ----------------------------------------------------------------------
 function gerarPDF() {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF("p", "mm", "a4");
+
+  // HELPERS (resolve o ERRO 1 sem você trocar tudo manualmente)
+  const N = (id) => {
+    const el = document.getElementById(id);
+    return el ? (el.value ?? "").toString().trim() : "";
+  };
+  const U = (id) => N(id).toUpperCase(); // sempre caixa alta
 
   //CRIANDO UMA MARGEM DE SGURANÇA PARA PAGINA
   const pageWidth = doc.internal.pageSize.getWidth();
@@ -150,7 +161,7 @@ function gerarPDF() {
   const marginBottom = 15; // margem de segurança
   //-------------------------------------------
 
-   let y = 25;
+  let y = 25;
 
   //função para quebrar pagina
   function verificarQuebraPagina(espaco = 10) {
@@ -164,70 +175,64 @@ function gerarPDF() {
 
   //FUNÇÃO PARA CRIAR TITULO
   function tituloSecao(texto) {
+    verificarQuebraPagina(15); // garante espaço para o título
 
-  verificarQuebraPagina(15); // garante espaço para o título
+    y += 2;
+    doc.setFont("Times", "bold");
+    doc.line(15, y, pageWidth - 15, y);
+    let tituloFormatado = "---------- " + texto + " ----------";
+    let textWidth = doc.getTextWidth(tituloFormatado);
+    y += 5;
+    doc.text(tituloFormatado, (pageWidth - textWidth) / 2, y);
+    y += 2;
+    doc.line(15, y, pageWidth - 15, y);
+    doc.setFont("Times", "normal");
+    y += 5;
+  }
+  //----------------------------------------------------------
 
-  y += 2;
-  doc.setFont("Times", "bold");
-  doc.line(15, y, pageWidth - 15, y);
-  let tituloFormatado = "---------- " + texto + " ----------";
-  let textWidth = doc.getTextWidth(tituloFormatado);
-  y += 5;
-  doc.text(tituloFormatado, (pageWidth - textWidth) / 2, y);
-  y += 2;
-  doc.line(15, y, pageWidth - 15, y);
-  doc.setFont("Times", "normal");
-  y += 5;
-}
-//----------------------------------------------------------
+  function blocoTexto(titulo, texto) {
+    // normaliza texto vazio
+    if (!texto || texto.toString().trim() === "") {
+      texto = "Nada consta.";
+    }
 
-function blocoTexto(titulo, texto) {
+    // >>> AQUI GARANTE CAIXA ALTA NO PDF (resolve o ERRO 1 para textarea/blocos)
+    texto = texto.toString().toUpperCase();
 
-  if (!texto || texto.trim() === "") {
-    texto = "Nada consta.";
+    const margem = 15;
+    const larguraCaixa = pageWidth - margem * 2;
+    const alturaLinha = 5;
+
+    // quebra texto respeitando a largura da caixa
+    let linhas = doc.splitTextToSize(texto, larguraCaixa - 4);
+
+    // calcula altura total da caixa
+    let alturaTexto = linhas.length * alturaLinha;
+    let alturaTotal = alturaTexto + 8; // padding interno
+
+    verificarQuebraPagina(alturaTotal + 15);
+
+    // ----- título -----
+    doc.setFont("Times", "bold");
+    doc.text(titulo, pageWidth / 2, y, { align: "center" });
+    y += 2;
+    doc.line(margem, y, pageWidth - margem, y);
+    y += 4;
+
+    // ----- caixa -----
+    doc.setFont("Times", "normal");
+
+    // desenha o retângulo
+    doc.rect(margem, y, larguraCaixa, alturaTotal);
+
+    // escreve o texto dentro da caixa
+    doc.text(linhas, margem + 2, y + 6);
+
+    // move y para depois da caixa
+    y += alturaTotal + 6;
   }
 
-  const margem = 15;
-  const larguraCaixa = pageWidth - margem * 2;
-  const alturaLinha = 5;
-
-  // quebra texto respeitando a largura da caixa
-  let linhas = doc.splitTextToSize(texto, larguraCaixa - 4);
-
-  // calcula altura total da caixa
-  let alturaTexto = linhas.length * alturaLinha;
-  let alturaTotal = alturaTexto + 8; // padding interno
-
-  verificarQuebraPagina(alturaTotal + 15);
-
-  // ----- título -----
-  doc.setFont("Times", "bold");
-  doc.text(titulo, pageWidth / 2, y, { align: "center" });
-  y += 2;
-  doc.line(margem, y, pageWidth - margem, y);
-  y += 4;
-
-  // ----- caixa -----
-  doc.setFont("Times", "normal");
-
-  // desenha o retângulo
-  doc.rect(margem, y, larguraCaixa, alturaTotal);
-
-  // escreve o texto dentro da caixa
-  doc.text(linhas, margem + 2, y + 6);
-
-  // move y para depois da caixa
-  y += alturaTotal + 6;
-}
-
-
-
-// A PARTIR DAQUI COMEÇAMOS A CONSTRUIR O PDF POR PARTES
-// -----------------------------------------------------
-//------------------------------------------------------
-//------------------------------------------------------
-//------------------------------------------------------
-//------------------------------------------------------
 
 
   //------------------ CABEÇALHO -------------------------
@@ -253,491 +258,456 @@ function blocoTexto(titulo, texto) {
 
 
   // ------------------ DADOS DA OCORRENCIA -------------------------
-  //tituloSecao("DADOS DA OCORRENCIA");
-  
-  //primeiro carregar os dados inseridos pelo usuario
-  let uop = document.getElementById("uop").value;
-  let numeroCICC = document.getElementById("numeroCICC").value;
-  let data = document.getElementById("data").value;
-  let hora = document.getElementById("hora").value;
-  let endereco = document.getElementById("endereco").value;
-  let numeroEndereco = document.getElementById("numeroEndereco").value;
-  let pontoReferencia = document.getElementById("pontoReferencia").value;
-  let natureza = document.getElementById("natureza").value;
-  let codigo = document.getElementById("codigo").value;
+
+  // pega dados (caixa alta no PDF)
+  let uop = U("uop");
+  let numeroCICC = U("numeroCICC");
+  let data = N("data"); // data/hora tanto faz, mas deixei "cru"
+  let hora = N("hora");
+  let endereco = U("endereco");
+  let numeroEndereco = U("numeroEndereco");
+  let pontoReferencia = U("pontoReferencia");
+  let natureza = U("natureza");
+  let codigo = U("codigo");
+
   //agora colocar no PDF
-  //LINHA 1
   doc.line(15, y, pageWidth - 15, y);
-  y+=5;
+  y += 5;
   doc.text("UOp/SUOp:", 15, y);
   doc.text("Data da Ocorrência:", 55, y);
   doc.text("Hora:", 115, y);
   doc.text("Nº ficha CICC:", 160, y);
 
-  y+=5;
-  doc.text(uop, 12, y)
-  doc.text(data, 60, y)
+  y += 5;
+  doc.text(uop, 12, y);
+  doc.text(data, 60, y);
   doc.text(hora, 114, y);
   doc.text(numeroCICC, 158, y);
-  //LINHA 2
-  y+=2
+
+  y += 2;
   doc.line(15, y, pageWidth - 15, y);
-  y+=5;
+  y += 5;
   doc.text("Endereço:", 15, y);
   doc.text("Nº:", 170, y);
-  
-  y+=5;
-  doc.text(endereco, 15 , y);
+
+  y += 5;
+  doc.text(endereco, 15, y);
   doc.text(numeroEndereco, 169, y);
-  //LINHA 3
-  y+=2;
+
+  y += 2;
   doc.line(15, y, pageWidth - 15, y);
-  y+=5;
+  y += 5;
   doc.text("Ponto de Referência:", 15, y);
 
-  y+=5;
+  y += 5;
   doc.text(pontoReferencia, 15, y);
-  //LINHA 4
-  y+=2;
+
+  y += 2;
   doc.line(15, y, pageWidth - 15, y);
-  y+=5;
+  y += 5;
   doc.text("Natureza da Ocorrência:", 15, y);
   doc.text("Código:", 165, y);
-  
-  y+=5;
+
+  y += 5;
   doc.text(natureza, 15, y);
   doc.text(codigo, 169, y);
-  //----------------------------------------------------------
+
 
 
   // ------------------ DADOS SOLICITANTE -------------------------
   tituloSecao("DADOS DO(A) SOLICITANTE");
 
-  let solicitante = document.getElementById("solicitante").value;
-  let telefone = document.getElementById("telefone").value;
-  let enderecoSolic = document.getElementById("enderecoSolic").value;
+  let solicitante = U("solicitante");
+  let telefone = U("telefone");
+  let enderecoSolic = U("enderecoSolic");
 
-  // LINHA 1
   doc.text("Solicitante:", 15, y);
   doc.text("Telefone:", 160, y);
 
-  y+=5;
+  y += 5;
   doc.text(solicitante, 15, y);
   doc.text(telefone, 160, y);
-  // LINHA 2
-  y+=2;
+
+  y += 2;
   doc.line(15, y, pageWidth - 15, y);
-  y+=5;
+  y += 5;
   doc.text("Endereço solicitante:", 15, y);
-  
-  y+=5;
+
+  y += 5;
   doc.text(enderecoSolic, 15, y);
-  //-------------------------------------------------------------------
 
 
-  //------------------ DADOS GUARNIÇÕES ------------------------- 
 
+  //------------------ DADOS GUARNIÇÕES -------------------------
   tituloSecao("DADOS DA(S) GUARNIÇÃO(ÕES)");
 
-  let qtd = document.getElementById("qtdGU").value;
-  
-  for (let i = 1; i <= qtd; i++) {
+  let qtd = parseInt(N("qtdGU") || "0", 10);
 
+  for (let i = 1; i <= qtd; i++) {
     verificarQuebraPagina(35);
 
     doc.setFont("Times", "bold");
     let titulo5 = "GUARNIÇÃO " + i;
     let textWidth5 = doc.getTextWidth(titulo5);
     doc.text(titulo5, (pageWidth - textWidth5) / 2, y);
-    y+=2;
+    y += 2;
     doc.line(15, y, pageWidth - 15, y);
     doc.setFont("Times", "normal");
 
-    let guarnicao = document.getElementById("guarnicao" + i).value;
-    let cmd = document.getElementById("cmd" + i).value;
-    let mot = document.getElementById("mot" + i).value;
-    let pat1 = document.getElementById("pat1" + i).value;
-    let pat2 = document.getElementById("pat2" + i).value;
-    let vtr = document.getElementById("vtr" + i).value;
+    let guarnicao = U("guarnicao" + i);
+    let cmd = U("cmd" + i);
+    let mot = U("mot" + i);
+    let pat1 = U("pat1" + i);
+    let pat2 = U("pat2" + i);
+    let vtr = U("vtr" + i);
 
-    y+=5;
+    y += 5;
     doc.text("Guarnição:", 15, y);
-    doc.text("Viatura:", 100, y); 
+    doc.text("Viatura:", 100, y);
     doc.text("Comandante:", 160, y);
     y += 5;
     doc.text(guarnicao, 15, y);
     doc.text(vtr, 100, y);
     doc.text(cmd, 160, y);
-    y+=2;
+
+    y += 2;
     doc.line(15, y, pageWidth - 15, y);
-    
-    y+=5;
+
+    y += 5;
     doc.text("Motorista:", 15, y);
     doc.text("Patrulheiro 01:", 95, y);
     doc.text("Patrulheiro 02:", 155, y);
-    y+=5;
+    y += 5;
     doc.text(mot, 15, y);
     doc.text(pat1, 95, y);
     doc.text(pat2, 155, y);
-    y+=2;
+
+    y += 2;
     doc.line(15, y, pageWidth - 15, y);
-    y+=5;
-       
+    y += 5;
   }
-  //------------------------------------------------------------
+
 
 
   // ------------------ DADOS ACUSADOS -------------------------
-  
   tituloSecao("DADOS DO(A) ACUSADO(S)");
 
-  let qtdAcusado = document.getElementById("qtdACUSADO").value;
+  let qtdAcusado = parseInt(N("qtdACUSADO") || "0", 10);
 
   for (let i = 1; i <= qtdAcusado; i++) {
+    verificarQuebraPagina(60);
 
-    verificarQuebraPagina(60); // bloco grande
+    doc.setFont("Times", "bold");
+    let titulo7 = "ENVOLVIDO/SUSPEITO " + i;
+    let textWidth7 = doc.getTextWidth(titulo7);
+    doc.text(titulo7, (pageWidth - textWidth7) / 2, y);
+    y += 2;
+    doc.line(15, y, pageWidth - 15, y);
+    doc.setFont("Times", "normal");
 
-      doc.setFont("Times", "bold");
-      let titulo7 = "ENVOLVIDO/SUSPEITO " + i;
-      let textWidth7 = doc.getTextWidth(titulo7);
-      doc.text(titulo7, (pageWidth - textWidth7) / 2, y);
-      y+=2;
-      doc.line(15, y, pageWidth - 15, y);
-      doc.setFont("Times", "normal");
+    let acusado = U("nome_acusado" + i);
+    let nascAcusado = N("DataNascimento" + i); // data pode ficar crua
+    let genitora = U("Genitora" + i);
+    let rg = U("RG" + i);
+    let cpf = U("CPF" + i);
+    let enderecoAcus = U("Endereço" + i);
+    let profissao = U("Profissao" + i);
+    let cnh = U("CNH" + i);
+    let pele = U("CorPele" + i);
+    let fisico = U("compleicaoFisica" + i);
+    let cabelo = U("corCabelo" + i);
+    let olhos = U("corOlhos" + i);
+    let altura = U("altura" + i);
+    let marcas = U("MarcasCaracteristicas" + i);
 
-      let acusado = document.getElementById("nome_acusado" + i).value;
-      let nascAcusado = document.getElementById("DataNascimento" + i).value;
-      let genitora = document.getElementById("Genitora" + i).value;
-      let rg = document.getElementById("RG" + i).value;
-      let cpf = document.getElementById("CPF" + i).value;
-      let endereco = document.getElementById("Endereço" + i).value;
-      let profissao = document.getElementById("Profissao" + i).value;
-      let cnh = document.getElementById("CNH" + i).value;
-      let pele = document.getElementById("CorPele" + i).value;
-      let fisico = document.getElementById("compleicaoFisica" + i).value;
-      let cabelo = document.getElementById("corCabelo" + i).value;
-      let olhos = document.getElementById("corOlhos" + i).value;
-      let altura = document.getElementById("altura" + i).value;
-      let marcas = document.getElementById("MarcasCaracteristicas" + i).value;
+    y += 5;
+    doc.text("Nome:", 15, y);
+    doc.text("Data de Nascimento:", 95, y);
+    doc.text("CPF:", 155, y);
+    y += 5;
+    doc.text(acusado, 15, y);
+    doc.text(nascAcusado, 95, y);
+    doc.text(cpf, 155, y);
+    y += 2;
+    doc.line(15, y, pageWidth - 15, y);
 
-      y+=5;
-      doc.text("Nome:", 15, y);
-      doc.text("Data de Nascimento:", 95, y); 
-      doc.text("CPF:", 155, y);
-      y += 5;
-      doc.text(acusado, 15, y);
-      doc.text(nascAcusado, 95, y);
-      doc.text(cpf, 155, y);
-      y+=2;
-      doc.line(15, y, pageWidth - 15, y);
-      
-      y+=5;
-      doc.text("Genitora:", 15, y);
-      doc.text("RG:", 95, y);
-      doc.text("CNH:", 155, y);
-      y+=5;
-      doc.text(genitora, 15, y);
-      doc.text(rg, 95, y);
-      doc.text(cnh, 155, y);
-      y+=2;
-      doc.line(15, y, pageWidth - 15, y);
-      y+=5;
+    y += 5;
+    doc.text("Genitora:", 15, y);
+    doc.text("RG:", 95, y);
+    doc.text("CNH:", 155, y);
+    y += 5;
+    doc.text(genitora, 15, y);
+    doc.text(rg, 95, y);
+    doc.text(cnh, 155, y);
+    y += 2;
+    doc.line(15, y, pageWidth - 15, y);
+    y += 5;
 
-      doc.text("Endereço:", 15, y);
-      doc.text("Profissão:", 155, y);
-      y+=5;
-      doc.text(endereco, 15, y);
-      doc.text(profissao, 155, y);
-      y+=2;
-      doc.line(15, y, pageWidth - 15, y);
-      y+=5;
+    doc.text("Endereço:", 15, y);
+    doc.text("Profissão:", 155, y);
+    y += 5;
+    doc.text(enderecoAcus, 15, y);
+    doc.text(profissao, 155, y);
+    y += 2;
+    doc.line(15, y, pageWidth - 15, y);
+    y += 5;
 
-      doc.text("Cor da Pele:", 15, y);
-      doc.text("Cor dos Olhos:", 95, y);
-      doc.text("Cor do Cabelo:", 155, y);
-      y+=5;
-      doc.text(pele, 15, y);
-      doc.text(olhos, 95, y);
-      doc.text(cabelo, 155, y);
-      y+=2;
-      doc.line(15, y, pageWidth - 15, y);
-      y+=5;
+    doc.text("Cor da Pele:", 15, y);
+    doc.text("Cor dos Olhos:", 95, y);
+    doc.text("Cor do Cabelo:", 155, y);
+    y += 5;
+    doc.text(pele, 15, y);
+    doc.text(olhos, 95, y);
+    doc.text(cabelo, 155, y);
+    y += 2;
+    doc.line(15, y, pageWidth - 15, y);
+    y += 5;
 
-      doc.text("Compleição Fisica:", 15, y);
-      doc.text("Altura:", 95, y);
-      doc.text("Marcas Caracteristicas:", 155, y);
-      y+=5;
-      doc.text(fisico, 15, y);
-      doc.text(altura, 95, y);
-      doc.text(marcas, 155, y);
-      y+=2;
-      doc.line(15, y, pageWidth - 15, y);
-      y+=5;
-
-      
-
+    doc.text("Compleição Fisica:", 15, y);
+    doc.text("Altura:", 95, y);
+    doc.text("Marcas Caracteristicas:", 155, y);
+    y += 5;
+    doc.text(fisico, 15, y);
+    doc.text(altura, 95, y);
+    doc.text(marcas, 155, y);
+    y += 2;
+    doc.line(15, y, pageWidth - 15, y);
+    y += 5;
   }
-//-----------------------------------------------------------
 
 
-// ------------------ DADOS VITIMAS -------------------------
-  
+
+  // ------------------ DADOS VITIMAS -------------------------
   tituloSecao("DADOS DA(S) VITIMA(S)");
 
-  let qtdVitima = document.getElementById("qtdVitima").value;
+  let qtdVitima = parseInt(N("qtdVitima") || "0", 10);
 
   for (let i = 1; i <= qtdVitima; i++) {
+    verificarQuebraPagina(40);
 
-    verificarQuebraPagina(40); // bloco grande
+    doc.setFont("Times", "bold");
+    let tituloV = "VITIMA " + i;
+    let textWidthV = doc.getTextWidth(tituloV);
+    doc.text(tituloV, (pageWidth - textWidthV) / 2, y);
+    y += 2;
+    doc.line(15, y, pageWidth - 15, y);
+    doc.setFont("Times", "normal");
 
-      doc.setFont("Times", "bold");
-      let titulo7 = "VITIMA " + i;
-      let textWidth7 = doc.getTextWidth(titulo7);
-      doc.text(titulo7, (pageWidth - textWidth7) / 2, y);
-      y+=2;
-      doc.line(15, y, pageWidth - 15, y);
-      doc.setFont("Times", "normal");
+    let vitima = U("nome_vitima" + i);
+    let nascimento = N("dataNascimento_vitima" + i);
+    let genitora = U("genitora_vitima" + i);
+    let rg = U("rg_vitima" + i);
+    let cpf = U("cpf_vitima" + i);
+    let enderecoVit = U("endereço_vitima" + i);
+    let telefoneVit = U("telefone_vitima" + i);
+    let profissaoVit = U("profissao_vitima" + i);
 
-      
-      let vitima = document.getElementById("nome_vitima" + i).value;
-      let nascimento = document.getElementById("dataNascimento_vitima" + i).value;
-      let genitora = document.getElementById("genitora_vitima" + i).value;
-      let rg = document.getElementById("rg_vitima" + i).value;
-      let cpf = document.getElementById("cpf_vitima" + i).value;
-      let endereco = document.getElementById("endereço_vitima" + i).value;
-      let telefone = document.getElementById("telefone_vitima" + i).value;
-      let profissao = document.getElementById("profissao_vitima" + i).value;
-      
-      y+=5;
-      doc.text("Nome:", 15, y);
-      doc.text("Data de Nascimento:", 95, y); 
-      doc.text("CPF:", 155, y);
-      y += 5;
-      doc.text(vitima, 15, y);
-      doc.text(nascimento, 95, y);
-      doc.text(cpf, 155, y);
-      y+=2;
-      doc.line(15, y, pageWidth - 15, y);
-      
-      y+=5;
-      doc.text("Genitora:", 15, y);
-      doc.text("RG:", 95, y);
-      doc.text("Telefone:", 155, y);
-      y+=5;
-      doc.text(genitora, 15, y);
-      doc.text(rg, 95, y);
-      doc.text(telefone, 155, y);
-      y+=2;
-      doc.line(15, y, pageWidth - 15, y);
-      y+=5;
+    y += 5;
+    doc.text("Nome:", 15, y);
+    doc.text("Data de Nascimento:", 95, y);
+    doc.text("CPF:", 155, y);
+    y += 5;
+    doc.text(vitima, 15, y);
+    doc.text(nascimento, 95, y);
+    doc.text(cpf, 155, y);
+    y += 2;
+    doc.line(15, y, pageWidth - 15, y);
 
-      doc.text("Endereço:", 15, y);
-      doc.text("Profissão:", 155, y);
-      y+=5;
-      doc.text(endereco, 15, y);
-      doc.text(profissao, 155, y);
-      y+=2;
-      doc.line(15, y, pageWidth - 15, y);
-      y+=5;  
-   }
-  
-//----------------------------------------------------------------
+    y += 5;
+    doc.text("Genitora:", 15, y);
+    doc.text("RG:", 95, y);
+    doc.text("Telefone:", 155, y);
+    y += 5;
+    doc.text(genitora, 15, y);
+    doc.text(rg, 95, y);
+    doc.text(telefoneVit, 155, y);
+    y += 2;
+    doc.line(15, y, pageWidth - 15, y);
+    y += 5;
+
+    doc.text("Endereço:", 15, y);
+    doc.text("Profissão:", 155, y);
+    y += 5;
+    doc.text(enderecoVit, 15, y);
+    doc.text(profissaoVit, 155, y);
+    y += 2;
+    doc.line(15, y, pageWidth - 15, y);
+    y += 5;
+  }
 
 
-// ------------------ DADOS TESTEMUNHAS -------------------------
-  
+
+  // ------------------ DADOS TESTEMUNHAS -------------------------
   tituloSecao("DADOS DA(S) TESTEMUNHA(S)");
 
-  let qtdTestemunha = document.getElementById("qtdTestemunha").value;
+  let qtdTestemunha = parseInt(N("qtdTestemunha") || "0", 10);
 
   for (let i = 1; i <= qtdTestemunha; i++) {
+    verificarQuebraPagina(40);
 
-    verificarQuebraPagina(40); // bloco grande
+    doc.setFont("Times", "bold");
+    let tituloT = "TESTEMUNHA " + i;
+    let textWidthT = doc.getTextWidth(tituloT);
+    doc.text(tituloT, (pageWidth - textWidthT) / 2, y);
+    y += 2;
+    doc.line(15, y, pageWidth - 15, y);
+    doc.setFont("Times", "normal");
 
-      doc.setFont("Times", "bold");
-      let titulo8 = "TESTEMUNHA " + i;
-      let textWidth8 = doc.getTextWidth(titulo8);
-      doc.text(titulo8, (pageWidth - textWidth8) / 2, y);
-      y+=2;
-      doc.line(15, y, pageWidth - 15, y);
-      doc.setFont("Times", "normal");
+    let testemunha = U("nome_testemunha" + i);
+    let nascimento = N("dataNascimento_testemunha" + i);
+    let genitora = U("genitora_testemunha" + i);
+    let rg = U("rg_testemunha" + i);
+    let cpf = U("cpf_testemunha" + i);
+    let enderecoTest = U("endereço_testemunha" + i);
+    let telefoneTest = U("telefone_testemunha" + i);
+    let profissaoTest = U("profissao_testemunha" + i);
 
-      
-      let testemunha = document.getElementById("nome_testemunha" + i).value;
-      let nascimento = document.getElementById("dataNascimento_testemunha" + i).value;
-      let genitora = document.getElementById("genitora_testemunha" + i).value;
-      let rg = document.getElementById("rg_testemunha" + i).value;
-      let cpf = document.getElementById("cpf_testemunha" + i).value;
-      let endereco = document.getElementById("endereço_testemunha" + i).value;
-      let telefone = document.getElementById("telefone_testemunha" + i).value;
-      let profissao = document.getElementById("profissao_testemunha" + i).value;
-      
-      y+=5;
-      doc.text("Nome:", 15, y);
-      doc.text("Data de Nascimento:", 95, y); 
-      doc.text("CPF:", 155, y);
-      y += 5;
-      doc.text(testemunha, 15, y);
-      doc.text(nascimento, 95, y);
-      doc.text(cpf, 155, y);
-      y+=2;
-      doc.line(15, y, pageWidth - 15, y);
-      
-      y+=5;
-      doc.text("Genitora:", 15, y);
-      doc.text("RG:", 95, y);
-      doc.text("Telefone:", 155, y);
-      y+=5;
-      doc.text(genitora, 15, y);
-      doc.text(rg, 95, y);
-      doc.text(telefone, 155, y);
-      y+=2;
-      doc.line(15, y, pageWidth - 15, y);
-      y+=5;
+    y += 5;
+    doc.text("Nome:", 15, y);
+    doc.text("Data de Nascimento:", 95, y);
+    doc.text("CPF:", 155, y);
+    y += 5;
+    doc.text(testemunha, 15, y);
+    doc.text(nascimento, 95, y);
+    doc.text(cpf, 155, y);
+    y += 2;
+    doc.line(15, y, pageWidth - 15, y);
 
-      doc.text("Endereço:", 15, y);
-      doc.text("Profissão:", 155, y);
-      y+=5;
-      doc.text(endereco, 15, y);
-      doc.text(profissao, 155, y);
-      y+=2;
-      doc.line(15, y, pageWidth - 15, y);
-      y+=5;  
+    y += 5;
+    doc.text("Genitora:", 15, y);
+    doc.text("RG:", 95, y);
+    doc.text("Telefone:", 155, y);
+    y += 5;
+    doc.text(genitora, 15, y);
+    doc.text(rg, 95, y);
+    doc.text(telefoneTest, 155, y);
+    y += 2;
+    doc.line(15, y, pageWidth - 15, y);
+    y += 5;
 
-      
-   }
-  
-//----------------------------------------------------------------
-
-
-// ------------------ MATERIAL APREENDIDO -------------------------
-tituloSecao("MATERIAIS APREENDIDOS");
-
-blocoTexto("ARMAS DE FOGO E MUNIÇÕES", document.getElementById("arma").value);
-blocoTexto("DROGAS", document.getElementById("droga").value);
-blocoTexto("OUTROS MATERIAIS", document.getElementById("outros").value);
-//----------------------------------------------------------------
+    doc.text("Endereço:", 15, y);
+    doc.text("Profissão:", 155, y);
+    y += 5;
+    doc.text(enderecoTest, 15, y);
+    doc.text(profissaoTest, 155, y);
+    y += 2;
+    doc.line(15, y, pageWidth - 15, y);
+    y += 5;
+  }
 
 
 
-// ------------------ RELATO -------------------------
-tituloSecao("RELATO DA OCORRENCIA");
+  // ------------------ MATERIAL APREENDIDO -------------------------
+  tituloSecao("MATERIAIS APREENDIDOS");
+  blocoTexto("ARMAS DE FOGO E MUNIÇÕES", N("arma"));
+  blocoTexto("DROGAS", N("droga"));
+  blocoTexto("OUTROS MATERIAIS", N("outros"));
 
-blocoTexto("", document.getElementById("relato").value);
-//----------------------------------------------------------------
+
+
+  // ------------------ RELATO -------------------------
+  tituloSecao("RELATO DA OCORRENCIA");
+  blocoTexto("", N("relato"));
 
 
 
-// ------------------ AUTO DE RESISTENCIA -------------------------
-function textoAutoResistencia(nomes) {
+  // ------------------ AUTO DE RESISTENCIA -------------------------
+  function textoAutoResistencia(nomes) {
+    let sujeito =
+      nomes.length === 1
+        ? `o nacional ${nomes[0]}`
+        : `os nacionais ${nomes.join(", ")}`;
 
-  let sujeito =
-    nomes.length === 1
-      ? `o nacional ${nomes[0]}`
-      : `os nacionais ${nomes.join(", ")}`;
+    let verbo = nomes.length === 1 ? "ofereceu" : "ofereceram";
 
-  let verbo = nomes.length === 1 ? "ofereceu" : "ofereceram";
-
-  return `
+    return `
 CONSTA QUE, no momento da intervenção policial, ${sujeito}, ao receber ordem legal para cessar sua conduta e submeter-se à abordagem, ${verbo} resistência ativa à ação policial, sendo necessário o emprego proporcional da força para conter a injusta agressão e garantir a segurança da guarnição e de terceiros.
 
 O uso da força deu-se em estrita observância aos princípios da legalidade, necessidade, proporcionalidade e moderação, conforme preconizam as normas técnicas e operacionais vigentes, cessando imediatamente após a contenção da resistência, sem que houvesse excesso por parte da equipe policial.
-  `.trim();
-}
-let usoForca = document.querySelector('input[name="usoForca"]:checked').value;
-if (usoForca === "sim") {
-
-  let nomesAcusados = obterNomesAcusados();
-
-  if (nomesAcusados.length === 0) {
-      nomesAcusados.push("");
+    `.trim();
   }
 
-  tituloSecao("AUTO DE RESISTÊNCIA");
+  let usoForca = document.querySelector('input[name="usoForca"]:checked')?.value || "nao";
+  if (usoForca === "sim") {
+    let nomesAcusados = obterNomesAcusados();
 
-  let textoAuto = textoAutoResistencia(nomesAcusados);
+    if (nomesAcusados.length === 0) {
+      nomesAcusados.push("");
+    }
 
-  blocoTexto("", textoAuto);
-}
-//----------------------------------------------------------------
+    tituloSecao("AUTO DE RESISTÊNCIA");
 
+    // caixa alta garantida porque blocoTexto já uppercasa
+    let textoAuto = textoAutoResistencia(nomesAcusados);
 
-// ------------------ ASSINATURAS -------------------------
-function secaoAssinaturas() {
-
-  verificarQuebraPagina(120);
-
-  const margem = 15;
-  const largura = pageWidth - margem * 2;
-
-  // -------- TÍTULO --------
-  doc.setFont("Times", "bold");
-  doc.text("ASSINATURAS", pageWidth / 2, y, { align: "center" });
-  y += 2;
-  doc.line(margem, y, pageWidth - margem, y);
-  y += 10;
-
-  doc.setFont("Times", "normal");
-
-  // -------- CAMPOS --------
-  doc.text("Condutor:", margem, y);
-  doc.line(margem + 22, y + 1, pageWidth - margem - 40, y + 1);
-  doc.text("Data:", pageWidth - margem - 35, y);
-  doc.line(pageWidth - margem - 25, y + 1, pageWidth - margem, y + 1);
-  y += 12;
-
-  doc.text("Testemunha 01:", margem, y);
-  doc.line(margem + 35, y + 1, pageWidth - margem - 40, y + 1);
-  doc.text("Data:", pageWidth - margem - 35, y);
-  doc.line(pageWidth - margem - 25, y + 1, pageWidth - margem, y + 1);
-  y += 12;
-
-  doc.text("Testemunha 02:", margem, y);
-  doc.line(margem + 35, y + 1, pageWidth - margem - 40, y + 1);
-  doc.text("Data:", pageWidth - margem - 35, y);
-  doc.line(pageWidth - margem - 25, y + 1, pageWidth - margem, y + 1);
-  y += 18;
-
-  // -------- RECEBIMENTO --------
-  doc.setFont("Times", "bold");
-  doc.text("RECEBIMENTO – POLÍCIA CIVIL", pageWidth / 2, y, { align: "center" });
-  y += 2;
-  doc.line(margem, y, pageWidth - margem, y);
-  y += 6;
-
-  const alturaCaixa = 45;
-
-  doc.rect(margem, y, largura, alturaCaixa);
-
-  doc.setFont("Times", "normal");
-
-  doc.text("Data e hora do recebimento:", margem + 2, y + 8);
-  doc.line(margem + 60, y + 9, pageWidth - margem - 2, y + 9);
-
-  doc.text("Nome do recebedor:", margem + 2, y + 18);
-  doc.line(margem + 42, y + 19, pageWidth - margem - 2, y + 19);
-
-  doc.text("Matrícula:", margem + 2, y + 28);
-  doc.line(margem + 28, y + 29, margem + 80, y + 29);
-
-  doc.text("Assinatura:", margem + 85, y + 28);
-  doc.line(margem + 115, y + 29, pageWidth - margem - 2, y + 29);
-
-  y += alturaCaixa + 10;
-}
-secaoAssinaturas();
-//----------------------------------------------------------------
+    blocoTexto("", textoAuto);
+  }
 
 
 
+  // ------------------ ASSINATURAS -------------------------
+  function secaoAssinaturas() {
+    verificarQuebraPagina(120);
 
+    const margem = 15;
+    const largura = pageWidth - margem * 2;
+
+    doc.setFont("Times", "bold");
+    doc.text("ASSINATURAS", pageWidth / 2, y, { align: "center" });
+    y += 2;
+    doc.line(margem, y, pageWidth - margem, y);
+    y += 10;
+
+    doc.setFont("Times", "normal");
+
+    doc.text("Condutor:", margem, y);
+    doc.line(margem + 22, y + 1, pageWidth - margem - 40, y + 1);
+    doc.text("Data:", pageWidth - margem - 35, y);
+    doc.line(pageWidth - margem - 25, y + 1, pageWidth - margem, y + 1);
+    y += 12;
+
+    doc.text("Testemunha 01:", margem, y);
+    doc.line(margem + 35, y + 1, pageWidth - margem - 40, y + 1);
+    doc.text("Data:", pageWidth - margem - 35, y);
+    doc.line(pageWidth - margem - 25, y + 1, pageWidth - margem, y + 1);
+    y += 12;
+
+    doc.text("Testemunha 02:", margem, y);
+    doc.line(margem + 35, y + 1, pageWidth - margem - 40, y + 1);
+    doc.text("Data:", pageWidth - margem - 35, y);
+    doc.line(pageWidth - margem - 25, y + 1, pageWidth - margem, y + 1);
+    y += 18;
+
+    doc.setFont("Times", "bold");
+    doc.text("RECEBIMENTO – POLÍCIA CIVIL", pageWidth / 2, y, { align: "center" });
+    y += 2;
+    doc.line(margem, y, pageWidth - margem, y);
+    y += 6;
+
+    const alturaCaixa = 45;
+
+    doc.rect(margem, y, largura, alturaCaixa);
+
+    doc.setFont("Times", "normal");
+
+    doc.text("Data e hora do recebimento:", margem + 2, y + 8);
+    doc.line(margem + 60, y + 9, pageWidth - margem - 2, y + 9);
+
+    doc.text("Nome do recebedor:", margem + 2, y + 18);
+    doc.line(margem + 42, y + 19, pageWidth - margem - 2, y + 19);
+
+    doc.text("Matrícula:", margem + 2, y + 28);
+    doc.line(margem + 28, y + 29, margem + 80, y + 29);
+
+    doc.text("Assinatura:", margem + 85, y + 28);
+    doc.line(margem + 115, y + 29, pageWidth - margem - 2, y + 29);
+
+    y += alturaCaixa + 10;
+  }
+  secaoAssinaturas();
 
 
 
   // Abre o PDF em nova aba sem salvar
-      window.open(doc.output("bloburl"), "_blank");
-
-
-  //doc.save("boletim_ocorrencia.pdf");
-        
+  window.open(doc.output("bloburl"), "_blank");
 }
